@@ -1,3 +1,8 @@
+""" Row sorter for Diane Miller's apple tree plot data."""
+""" To run, change the INPUT_FILE and OUTPUT_FILE names as needed, 
+ensure the necessary libraries are installed, ensure the input csv file is in the correct location, 
+then execute this script. """
+
 id="z8ehh0"
 import pandas as pd
 import numpy as np
@@ -7,8 +12,8 @@ from sklearn.cluster import KMeans
 # CONFIG
 # ============================================
 
-INPUT_FILE = "Diane Miller TwoRow_20260512_091535.csv"
-OUTPUT_FILE = "orchard_final_sorted_time_fixed.csv"
+INPUT_FILE = "Crop_Data_Diane Miller apple tree plot_20260416_104348.csv"
+OUTPUT_FILE = "Diane_Miller_TwoRow_sorted_20260416.csv"
 
 TIME_GAP_THRESHOLD = 3.0
 

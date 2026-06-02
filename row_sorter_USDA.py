@@ -1,3 +1,8 @@
+""" Row sorter for USDA apple tree plot data."""
+""" To run, change the INPUT_FILE and OUTPUT_FILE names as needed, 
+ensure the necessary libraries are installed, ensure the input csv file is in the correct location, 
+then execute this script. """
+
 import pandas as pd
 import numpy as np
 from sklearn.cluster import KMeans
