@@ -8,13 +8,13 @@ from sklearn.decomposition import PCA
 # =====================================================
 
 INPUT_FILE = "Crop_Data_Hort 2_20260416_100400.csv"
-OUTPUT_FILE = "USDA_final_sorted_time_fixed.csv"
+OUTPUT_FILE = "USDA_final_sorted.csv"
 
 EXPECTED_ROWS = 5
 
 # Tree filtering thresholds
-# Minimum width considered a valid tree.
-# Density is NOT used because density=0 can still be a valid tree.
+MIN_WIDTH = 5.0
+MIN_DENSITY = 0.02
 
 # =====================================================
 # LOAD DATA
@@ -43,16 +43,16 @@ df["DateTime"] = pd.to_datetime(
 df = df.sort_values("DateTime").reset_index(drop=True)
 
 # =====================================================
-# KEEP ALL RECORDS
+# REMOVE LIKELY NON-TREES
 # =====================================================
 
-# Every point recorded by the machine should be kept.
-# No filtering is performed.
-
-trees = df.copy()
+trees = df[
+    (df["Width (Feet)"] >= MIN_WIDTH) &
+    (df["Density (Gallons)"] >= MIN_DENSITY)
+].copy()
 
 print(f"Original points: {len(df)}")
-print(f"Points retained: {len(trees)}")
+print(f"Tree points: {len(trees)}")
 
 # =====================================================
 # PCA ROTATION
@@ -153,66 +153,13 @@ print("Rows 1-3 ≈ 30 trees")
 print("Rows 4-5 ≈ 25 trees")
 
 # =====================================================
-# FINAL SORTING
-# =====================================================
-
-# Ensure trees are ordered west -> east within each row
-trees = trees.sort_values(
-    ["row", "along_row"]
-)
-
-# Recalculate tree numbers after final sort
-trees["tree_number"] = (
-    trees.groupby("row")
-         .cumcount() + 1
-)
-
-# =====================================================
-# REBUILD POSITION COLUMN
-# =====================================================
-
-trees["Position"] = (
-    trees["latitude"].apply(
-        lambda x: f"{x:.15f}"
-    )
-    + ", "
-    +
-    trees["longitude"].apply(
-        lambda x: f"{x:.15f}"
-    )
-)
-
-# =====================================================
-# RESTORE ORIGINAL DATETIME FORMAT
-# =====================================================
-
-trees["DateTime"] = (
-    pd.to_datetime(trees["DateTime"])
-      .dt.strftime("%Y-%m-%d_%H:%M:%S")
-)
-
-# =====================================================
-# SUMMARY
-# =====================================================
-
-print("\nROW SUMMARY")
-print("-" * 40)
-
-summary = (
-    trees.groupby("row")
-         .size()
-         .reset_index(name="tree_count")
-)
-
-print(summary)
-
-# =====================================================
-# OUTPUT COLUMNS
+# CLEAN OUTPUT
 # =====================================================
 
 output_cols = [
     "DateTime",
-    "Position",
+    "latitude",
+    "longitude",
     "Height (Feet)",
     "Width (Feet)",
     "Density (Gallons)",
@@ -221,13 +168,13 @@ output_cols = [
     "tree_number"
 ]
 
-output_df = trees[output_cols].copy()
+trees = trees[output_cols]
 
-# =====================================================
-# SAVE CSV
-# =====================================================
+trees = trees.sort_values(
+    ["row", "tree_number"]
+)
 
-output_df.to_csv(
+trees.to_csv(
     OUTPUT_FILE,
     index=False
 )
